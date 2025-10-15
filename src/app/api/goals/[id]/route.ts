@@ -4,25 +4,38 @@ import { goals } from '@/db/schema';
 import { getAuthUserId, getUserTeamId } from '@/lib/authz';
 import { eq } from 'drizzle-orm';
 
-type CloudflareEnv = {
-  DB: D1Database;
-  CACHE: KVNamespace;
-};
-
 // GET /api/goals/:id - Goal詳細取得
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
+    
+    // 開発環境ではモックデータを返す
+    if (process.env.NODE_ENV === 'development') {
+      return NextResponse.json({
+        goal: {
+          id,
+          title: '月商100万円達成',
+          description: '12月末までに達成',
+          targetValue: 1000000,
+          unit: '円',
+          dueDate: Date.now() + 30 * 24 * 60 * 60 * 1000,
+          status: 'active',
+          kpis: [],
+        },
+      });
+    }
+
     const userId = await getAuthUserId();
-    const env = (process.env as unknown) as CloudflareEnv;
+    const env = (process.env as any) as any;
     const db = getDb(env.DB);
     
     const teamId = await getUserTeamId(db, userId);
     
     const goal = await db.query.goals.findFirst({
-      where: eq(goals.id, params.id),
+      where: eq(goals.id, id),
       with: {
         kpis: true,
       },
@@ -46,18 +59,26 @@ export async function GET(
 // PATCH /api/goals/:id - Goal更新
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const userId = await getAuthUserId();
+    const { id } = await params;
     const body = await req.json();
-    const env = (process.env as unknown) as CloudflareEnv;
+    
+    // 開発環境ではモックレスポンス
+    if (process.env.NODE_ENV === 'development') {
+      console.log('✅ Goalを更新しました（モック）:', { id, ...body });
+      return NextResponse.json({ ok: true });
+    }
+
+    const userId = await getAuthUserId();
+    const env = (process.env as any) as any;
     const db = getDb(env.DB);
     
     const teamId = await getUserTeamId(db, userId);
     
     const goal = await db.query.goals.findFirst({
-      where: eq(goals.id, params.id),
+      where: eq(goals.id, id),
     });
     
     if (!goal) {
@@ -77,7 +98,7 @@ export async function PATCH(
     if (body.status !== undefined) updateData.status = body.status;
     if (body.ownerId !== undefined) updateData.ownerId = body.ownerId;
     
-    await db.update(goals).set(updateData).where(eq(goals.id, params.id));
+    await db.update(goals).set(updateData).where(eq(goals.id, id));
     
     return NextResponse.json({ ok: true });
   } catch (error) {

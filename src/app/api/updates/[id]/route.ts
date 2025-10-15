@@ -4,24 +4,27 @@ import { kpiUpdates } from '@/db/schema';
 import { getAuthUserId } from '@/lib/authz';
 import { eq } from 'drizzle-orm';
 
-type CloudflareEnv = {
-  DB: D1Database;
-  CACHE: KVNamespace;
-};
-
 // PATCH /api/updates/:id - KPI更新の編集（直近1件のみ）
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const userId = await getAuthUserId();
+    const { id } = await params;
     const body = await req.json();
-    const env = (process.env as unknown) as CloudflareEnv;
+    
+    // 開発環境ではモックレスポンス
+    if (process.env.NODE_ENV === 'development') {
+      console.log('✅ KPI更新を編集しました（モック）:', { id, ...body });
+      return NextResponse.json({ ok: true });
+    }
+
+    const userId = await getAuthUserId();
+    const env = (process.env as any) as any;
     const db = getDb(env.DB);
     
     const update = await db.query.kpiUpdates.findFirst({
-      where: eq(kpiUpdates.id, params.id),
+      where: eq(kpiUpdates.id, id),
     });
     
     if (!update) {
@@ -38,7 +41,7 @@ export async function PATCH(
     if (body.note !== undefined) updateData.note = body.note;
     if (body.recordedAt !== undefined) updateData.recordedAt = Number(body.recordedAt);
     
-    await db.update(kpiUpdates).set(updateData).where(eq(kpiUpdates.id, params.id));
+    await db.update(kpiUpdates).set(updateData).where(eq(kpiUpdates.id, id));
     
     return NextResponse.json({ ok: true });
   } catch (error) {
@@ -50,15 +53,23 @@ export async function PATCH(
 // DELETE /api/updates/:id - KPI更新の削除（直近1件のみ）
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
+    
+    // 開発環境ではモックレスポンス
+    if (process.env.NODE_ENV === 'development') {
+      console.log('✅ KPI更新を削除しました（モック）:', id);
+      return NextResponse.json({ ok: true });
+    }
+
     const userId = await getAuthUserId();
-    const env = (process.env as unknown) as CloudflareEnv;
+    const env = (process.env as any) as any;
     const db = getDb(env.DB);
     
     const update = await db.query.kpiUpdates.findFirst({
-      where: eq(kpiUpdates.id, params.id),
+      where: eq(kpiUpdates.id, id),
     });
     
     if (!update) {
@@ -70,7 +81,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
     
-    await db.delete(kpiUpdates).where(eq(kpiUpdates.id, params.id));
+    await db.delete(kpiUpdates).where(eq(kpiUpdates.id, id));
     
     return NextResponse.json({ ok: true });
   } catch (error) {

@@ -5,22 +5,22 @@ import { nanoid } from 'nanoid';
 import { getAuthUserId, getUserTeamId } from '@/lib/authz';
 import { eq } from 'drizzle-orm';
 
-type CloudflareEnv = {
-  DB: D1Database;
-  CACHE: KVNamespace;
-};
-
 // GET /api/kpis - KPI一覧取得
 export async function GET(req: NextRequest) {
   try {
+    const { searchParams } = new URL(req.url);
+    const goalId = searchParams.get('goalId');
+    
+    // 開発環境ではモックデータを返す
+    if (process.env.NODE_ENV === 'development') {
+      return NextResponse.json({ kpis: [] });
+    }
+
     const userId = await getAuthUserId();
-    const env = (process.env as unknown) as CloudflareEnv;
+    const env = (process.env as any) as any;
     const db = getDb(env.DB);
     
     const teamId = await getUserTeamId(db, userId);
-    
-    const { searchParams } = new URL(req.url);
-    const goalId = searchParams.get('goalId');
     
     let kpisList;
     if (goalId) {
@@ -43,7 +43,6 @@ export async function GET(req: NextRequest) {
 // POST /api/kpis - KPI作成
 export async function POST(req: NextRequest) {
   try {
-    const userId = await getAuthUserId();
     const body = await req.json();
     const { goalId, title, description, targetValue, unit, direction, frequency, ownerId } = body;
     
@@ -63,7 +62,27 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Target value must be greater than 0' }, { status: 400 });
     }
     
-    const env = (process.env as unknown) as CloudflareEnv;
+    // 開発環境ではモックレスポンス
+    if (process.env.NODE_ENV === 'development') {
+      const newKpi = {
+        id: nanoid(),
+        goalId,
+        title,
+        description: description || null,
+        ownerId,
+        targetValue: Number(targetValue),
+        unit,
+        direction,
+        frequency,
+        weight: 1,
+        status: 'active' as const,
+      };
+      console.log('✅ KPIを作成しました（モック）:', newKpi);
+      return NextResponse.json({ kpi: newKpi }, { status: 201 });
+    }
+
+    const userId = await getAuthUserId();
+    const env = (process.env as any) as any;
     const db = getDb(env.DB);
     
     const teamId = await getUserTeamId(db, userId);
@@ -99,4 +118,3 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Failed to create KPI' }, { status: 500 });
   }
 }
-

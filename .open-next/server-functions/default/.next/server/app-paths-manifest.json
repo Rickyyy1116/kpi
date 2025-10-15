@@ -1,0 +1,13 @@
+{
+  "/api/goals/route": "app/api/goals/route.js",
+  "/api/dashboard/route": "app/api/dashboard/route.js",
+  "/api/goals/[id]/route": "app/api/goals/[id]/route.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/api/kpis/[id]/route": "app/api/kpis/[id]/route.js",
+  "/api/kpis/route": "app/api/kpis/route.js",
+  "/api/updates/[id]/route": "app/api/updates/[id]/route.js",
+  "/api/updates/route": "app/api/updates/route.js",
+  "/kpi/[id]/page": "app/kpi/[id]/page.js",
+  "/page": "app/page.js",
+  "/setup/page": "app/setup/page.js"
+}
