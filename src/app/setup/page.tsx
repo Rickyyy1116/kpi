@@ -48,7 +48,7 @@ export default function SetupPage() {
     targetValue: '',
     unit: '',
     dueDate: '',
-    ownerId: 'user_1', // TODO: 実際のユーザーIDを取得
+    ownerId: 'user_a', // ユーザーA（authz.tsのUSERS.Aと一致）
   })
   
   // KPI作成フォーム
@@ -58,7 +58,7 @@ export default function SetupPage() {
     unit: '',
     direction: 'up' as 'up' | 'down',
     frequency: 'weekly' as 'daily' | 'weekly' | 'monthly',
-    ownerId: 'user_1', // TODO: 実際のユーザーIDを取得
+    ownerId: 'user_a', // ユーザーA（authz.tsのUSERS.Aと一致）
   })
 
   useEffect(() => {
