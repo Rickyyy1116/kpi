@@ -1,17 +1,22 @@
-import { auth } from '@clerk/nextjs/server';
 import { Database } from '@/db';
 import { teamMembers } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 
 /**
- * 認証済みユーザーのIDを取得
+ * 固定ユーザーID（2名で使用）
+ * 実運用時は環境変数などで変更可能
+ */
+const USERS = {
+  A: 'user_a',
+  B: 'user_b',
+};
+
+/**
+ * デフォルトユーザーID（ユーザーA）
  */
 export async function getAuthUserId(): Promise<string> {
-  const { userId } = await auth();
-  if (!userId) {
-    throw new Error('Unauthorized');
-  }
-  return userId;
+  // 認証なしなのでデフォルトユーザーAを返す
+  return USERS.A;
 }
 
 /**
@@ -23,24 +28,26 @@ export async function getUserTeamId(db: Database, userId: string): Promise<strin
   });
   
   if (!member) {
-    throw new Error('User not in any team');
+    // チームがない場合はデフォルトチームを返す
+    return 'team_default';
   }
   
   return member.teamId;
 }
 
 /**
- * チームスコープの検証
- * 指定されたリソースが、ユーザーの所属するチームに属するかを確認
+ * チームスコープの検証（簡略版）
  */
 export async function assertTeamScope(
   db: Database,
   userId: string,
   teamId: string
 ): Promise<void> {
+  // 認証なしの簡易版なのでチェックのみ
   const userTeamId = await getUserTeamId(db, userId);
   if (userTeamId !== teamId) {
     throw new Error('Forbidden: Team scope violation');
   }
 }
+
 

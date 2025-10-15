@@ -1,22 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDb } from '@/db';
-import { kpiUpdates } from '@/db/schema';
 import { nanoid } from 'nanoid';
 import { getAuthUserId } from '@/lib/authz';
-import { eq, and, desc } from 'drizzle-orm';
 
-type CloudflareEnv = {
-  DB: D1Database;
-  CACHE: KVNamespace;
-};
-
-// GET /api/updates - KPI更新履歴取得
+// GET /api/updates - KPI更新履歴取得（モック）
 export async function GET(req: NextRequest) {
   try {
-    const userId = await getAuthUserId();
-    const env = (process.env as unknown) as CloudflareEnv;
-    const db = getDb(env.DB);
-    
     const { searchParams } = new URL(req.url);
     const kpiId = searchParams.get('kpiId');
     
@@ -24,45 +12,55 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'kpiId is required' }, { status: 400 });
     }
     
-    const updates = await db.query.kpiUpdates.findMany({
-      where: eq(kpiUpdates.kpiId, kpiId),
-      orderBy: [desc(kpiUpdates.recordedAt)],
-    });
+    // モックデータ
+    const mockUpdates = [
+      {
+        id: 'update_1',
+        kpiId,
+        value: 7,
+        note: '今週の実績',
+        recordedAt: Date.now() - 2 * 24 * 60 * 60 * 1000,
+        createdBy: 'user_a',
+      },
+      {
+        id: 'update_2',
+        kpiId,
+        value: 5,
+        note: '先週の実績',
+        recordedAt: Date.now() - 9 * 24 * 60 * 60 * 1000,
+        createdBy: 'user_a',
+      },
+    ];
     
-    return NextResponse.json({ updates });
+    return NextResponse.json({ updates: mockUpdates });
   } catch (error) {
     console.error('GET /api/updates error:', error);
     return NextResponse.json({ error: 'Failed to fetch updates' }, { status: 500 });
   }
 }
 
-// POST /api/updates - KPI Check-in（更新値追加）
+// POST /api/updates - KPI Check-in（更新値追加）モック版
 export async function POST(req: NextRequest) {
   try {
     const userId = await getAuthUserId();
     const body = await req.json();
-    const { kpiId, value, note, recordedAt } = body;
+    const { kpiId, value, note } = body;
     
     if (!kpiId || value === undefined || value === null) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
     
-    const env = (process.env as unknown) as CloudflareEnv;
-    const db = getDb(env.DB);
-    
+    // モックレスポンス
     const newUpdate = {
       id: nanoid(),
       kpiId,
       value: Number(value),
       note: note || null,
-      recordedAt: recordedAt ? Number(recordedAt) : Date.now(),
+      recordedAt: Date.now(),
       createdBy: userId,
     };
     
-    await db.insert(kpiUpdates).values(newUpdate);
-    
-    // キャッシュクリア（Dashboard用）
-    // TODO: env.CACHE?.delete(`dashboard:${teamId}`);
+    console.log('✅ KPI更新を記録しました（モック）:', newUpdate);
     
     return NextResponse.json({ update: newUpdate }, { status: 201 });
   } catch (error) {

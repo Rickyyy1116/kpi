@@ -1,4 +1,3 @@
-import { UserButton } from '@clerk/nextjs'
 import Link from 'next/link'
 import { Home, Settings, Target } from 'lucide-react'
 
@@ -28,7 +27,9 @@ export function Header() {
             </Link>
           </nav>
         </div>
-        <UserButton afterSignOutUrl="/signin" />
+        <div className="flex items-center space-x-2">
+          <span className="text-sm text-muted-foreground">ユーザー: A</span>
+        </div>
       </div>
     </header>
   )

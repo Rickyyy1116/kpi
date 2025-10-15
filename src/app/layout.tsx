@@ -1,6 +1,5 @@
 import './globals.css'
 import type { Metadata } from 'next'
-import { ClerkProvider } from '@clerk/nextjs'
 
 export const metadata: Metadata = {
   title: 'KPI管理 - Goal & KPI Tracker',
@@ -13,11 +12,9 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <ClerkProvider>
-      <html lang="ja">
-        <body>{children}</body>
-      </html>
-    </ClerkProvider>
+    <html lang="ja">
+      <body>{children}</body>
+    </html>
   )
 }
 

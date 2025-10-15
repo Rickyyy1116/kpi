@@ -1,74 +1,52 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDb } from '@/db';
-import { kpis, kpiUpdates } from '@/db/schema';
-import { getAuthUserId, getUserTeamId } from '@/lib/authz';
-import { eq, desc } from 'drizzle-orm';
+import { getAuthUserId } from '@/lib/authz';
 
-type CloudflareEnv = {
-  DB: D1Database;
-  CACHE: KVNamespace;
-};
-
-// GET /api/kpis/:id - KPI詳細取得
+// GET /api/kpis/:id - KPI詳細取得（モック）
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const userId = await getAuthUserId();
-    const env = (process.env as unknown) as CloudflareEnv;
-    const db = getDb(env.DB);
+    const { id } = await params;
     
-    const kpi = await db.query.kpis.findFirst({
-      where: eq(kpis.id, params.id),
-      with: {
-        updates: {
-          orderBy: [desc(kpiUpdates.recordedAt)],
+    // モックデータ
+    const mockKpi = {
+      id,
+      title: id === 'kpi_1' ? '週あたり商談数' : 'CPA（顧客獲得単価）',
+      targetValue: id === 'kpi_1' ? 10 : 5000,
+      unit: id === 'kpi_1' ? '件' : '円',
+      direction: id === 'kpi_1' ? 'up' : 'down',
+      frequency: 'weekly',
+      goalId: 'goal_1',
+      updates: [
+        {
+          id: 'update_1',
+          kpiId: id,
+          value: id === 'kpi_1' ? 7 : 8000,
+          note: '今週の実績',
+          recordedAt: Date.now() - 2 * 24 * 60 * 60 * 1000,
+          createdBy: 'user_a',
         },
-      },
-    });
+      ],
+    };
     
-    if (!kpi) {
-      return NextResponse.json({ error: 'KPI not found' }, { status: 404 });
-    }
-    
-    return NextResponse.json({ kpi });
+    return NextResponse.json({ kpi: mockKpi });
   } catch (error) {
     console.error('GET /api/kpis/:id error:', error);
     return NextResponse.json({ error: 'Failed to fetch KPI' }, { status: 500 });
   }
 }
 
-// PATCH /api/kpis/:id - KPI更新
+// PATCH /api/kpis/:id - KPI更新（モック）
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const userId = await getAuthUserId();
+    const { id } = await params;
     const body = await req.json();
-    const env = (process.env as unknown) as CloudflareEnv;
-    const db = getDb(env.DB);
     
-    const kpi = await db.query.kpis.findFirst({
-      where: eq(kpis.id, params.id),
-    });
-    
-    if (!kpi) {
-      return NextResponse.json({ error: 'KPI not found' }, { status: 404 });
-    }
-    
-    const updateData: any = {};
-    if (body.title !== undefined) updateData.title = body.title;
-    if (body.description !== undefined) updateData.description = body.description;
-    if (body.targetValue !== undefined) updateData.targetValue = Number(body.targetValue);
-    if (body.unit !== undefined) updateData.unit = body.unit;
-    if (body.direction !== undefined) updateData.direction = body.direction;
-    if (body.frequency !== undefined) updateData.frequency = body.frequency;
-    if (body.status !== undefined) updateData.status = body.status;
-    if (body.ownerId !== undefined) updateData.ownerId = body.ownerId;
-    
-    await db.update(kpis).set(updateData).where(eq(kpis.id, params.id));
+    console.log('✅ KPIを更新しました（モック）:', { id, ...body });
     
     return NextResponse.json({ ok: true });
   } catch (error) {
@@ -77,26 +55,15 @@ export async function PATCH(
   }
 }
 
-// DELETE /api/kpis/:id - KPI削除
+// DELETE /api/kpis/:id - KPI削除（モック）
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const userId = await getAuthUserId();
-    const env = (process.env as unknown) as CloudflareEnv;
-    const db = getDb(env.DB);
+    const { id } = await params;
     
-    const kpi = await db.query.kpis.findFirst({
-      where: eq(kpis.id, params.id),
-    });
-    
-    if (!kpi) {
-      return NextResponse.json({ error: 'KPI not found' }, { status: 404 });
-    }
-    
-    // ステータスをarchivedに変更（論理削除）
-    await db.update(kpis).set({ status: 'archived' }).where(eq(kpis.id, params.id));
+    console.log('✅ KPIを削除しました（モック）:', id);
     
     return NextResponse.json({ ok: true });
   } catch (error) {
