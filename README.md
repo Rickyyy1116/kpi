@@ -86,4 +86,3 @@ wrangler pages publish .next
 ## ライセンス
 
 MIT
-
