@@ -5,6 +5,8 @@ import { nanoid } from 'nanoid';
 import { getAuthUserId, getUserTeamId } from '@/lib/authz';
 import { eq } from 'drizzle-orm';
 
+export const runtime = 'edge';
+
 // GET /api/goals - Goal一覧取得
 export async function GET(req: NextRequest) {
   try {

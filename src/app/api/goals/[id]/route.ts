@@ -4,6 +4,8 @@ import { goals } from '@/db/schema';
 import { getAuthUserId, getUserTeamId } from '@/lib/authz';
 import { eq } from 'drizzle-orm';
 
+export const runtime = 'edge';
+
 // GET /api/goals/:id - Goal詳細取得
 export async function GET(
   req: NextRequest,

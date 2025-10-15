@@ -4,6 +4,8 @@ import { kpiUpdates } from '@/db/schema';
 import { getAuthUserId } from '@/lib/authz';
 import { eq } from 'drizzle-orm';
 
+export const runtime = 'edge';
+
 // PATCH /api/updates/:id - KPI更新の編集（直近1件のみ）
 export async function PATCH(
   req: NextRequest,

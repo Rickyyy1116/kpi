@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { nanoid } from 'nanoid';
 import { getAuthUserId } from '@/lib/authz';
 
+export const runtime = 'edge';
+
 // GET /api/updates - KPI更新履歴取得（モック）
 export async function GET(req: NextRequest) {
   try {

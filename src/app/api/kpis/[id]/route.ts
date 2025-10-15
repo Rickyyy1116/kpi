@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthUserId } from '@/lib/authz';
 
+export const runtime = 'edge';
+
 // GET /api/kpis/:id - KPI詳細取得（モック）
 export async function GET(
   req: NextRequest,
