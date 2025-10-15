@@ -40,6 +40,9 @@ next-env.d.ts
 .wrangler/
 .dev.vars
 
+# opennext
+.open-next/
+
 # drizzle
 drizzle/
 
